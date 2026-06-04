@@ -4,6 +4,61 @@
 #include "FrontendInterface/FrontendInterface.h"
 #include <iostream>
 #include <cstring>
+using namespace std;
+
+void displayRelations(){
+    // create objects for the relation catalog and attribute catalog
+  RecBuffer relCatBuffer(RELCAT_BLOCK);
+
+  // create header for relation catalog
+  HeadInfo relCatHeader;
+  
+  // load the headers of both the blocks into relCatHeader and attrCatHeader.
+  // (we will implement these functions later)
+  relCatBuffer.getHeader(&relCatHeader);
+
+  // Disk functions expects 2 arguments, 1 buffer of size 2048 bytes and block number
+
+  for(int i=0;i<relCatHeader.numEntries;i++){
+    Attribute relCatRecord[RELCAT_NO_ATTRS]; // will store the record from the relation catalog
+
+    relCatBuffer.getRecord(relCatRecord, i);
+
+    printf("Relation: %s\n", relCatRecord[RELCAT_REL_NAME_INDEX].sVal);
+
+    int currAttrCatBlock=ATTRCAT_BLOCK;
+    while(currAttrCatBlock!=-1){
+      RecBuffer attrCatBuffer(currAttrCatBlock);
+      HeadInfo attrCatHeader;
+      attrCatBuffer.getHeader(&attrCatHeader);
+  
+      // now we retrieve all atributes of all relations and print only if relation is ours
+      for (int j=0;j<attrCatHeader.numEntries;j++) {
+        Attribute attrCatRecord[ATTRCAT_NO_ATTRS];
+        attrCatBuffer.getRecord(attrCatRecord, j);
+        // declare attrCatRecord and load the attribute catalog entry into it
+  
+        if (strcmp(attrCatRecord[ATTRCAT_REL_NAME_INDEX].sVal, relCatRecord[RELCAT_REL_NAME_INDEX].sVal)==0) {
+          const char *attrName = attrCatRecord[ATTRCAT_ATTR_NAME_INDEX].sVal;
+          const char *attrType = attrCatRecord[ATTRCAT_ATTR_TYPE_INDEX].nVal == NUMBER ? "NUM" : "STR";
+          printf("  %s: %s\n", attrName, attrType);
+        }
+      }
+      currAttrCatBlock=attrCatHeader.rblock;
+    }
+    printf("\n");
+  }
+}
+
+void printBuffer(unsigned char buffer[], int size)
+{
+	for (int i = 0; i < size; i++)
+	{
+		cout << (int)buffer[i] << " ";
+		if (i % 64 == 63) cout << "\n";
+	}
+	cout << "\n";
+}
 
 int main(int argc, char *argv[]) {
   /* Initialize the Run Copy of Disk */
@@ -11,18 +66,14 @@ int main(int argc, char *argv[]) {
   // StaticBuffer buffer;
   // OpenRelTable cache;
 
-  // Disk functions expects 2 arguments, 1 buffer of size 2048 bytes and block number
+  // stage 1, print block allocation map
+  unsigned char buffer[BLOCK_SIZE];
+	Disk::readBlock(buffer, 0);
+	printBuffer(buffer,  64);
 
-  unsigned char buffer[2048];
-  // We use unsigned char as it is of size 1 bytes,
-  // This accurately simulates one block
+  // stage 2, display relations
+	displayRelations();
 
-  Disk::readBlock(buffer, 0);
-  // 7000 is a random unused block number
-
-  for(int i=0;i<10;i++){
-    std::cout<<int(buffer[i])<<'\n';
-  }
   // return FrontendInterface::handleFrontend(argc, argv);
   return 0;
 }
