@@ -60,6 +60,39 @@ void printBuffer(unsigned char buffer[], int size)
 	cout << "\n";
 }
 
+void modifySchema(const char *relName, const char *oldName, const char *newName){
+  bool foundRelation=false;
+  int currAttrCatBlock=ATTRCAT_BLOCK;
+  while(currAttrCatBlock!=-1){
+    RecBuffer attrCatBuffer(currAttrCatBlock);
+    HeadInfo attrCatHeader;
+    attrCatBuffer.getHeader(&attrCatHeader);
+
+    // now we retrieve all atributes of all relations and print only if relation is ours
+    for (int j=0;j<attrCatHeader.numEntries;j++) {
+      Attribute attrCatRecord[ATTRCAT_NO_ATTRS];
+      attrCatBuffer.getRecord(attrCatRecord, j);
+      // declare attrCatRecord and load the attribute catalog entry into it
+      if(strcmp(attrCatRecord[ATTRCAT_REL_NAME_INDEX].sVal, relName)!=0) continue;
+      else foundRelation=true;
+      if (strcmp(attrCatRecord[ATTRCAT_ATTR_NAME_INDEX].sVal, oldName)!=0) continue;
+      
+      strncpy(attrCatRecord[ATTRCAT_ATTR_NAME_INDEX].sVal, newName, ATTR_SIZE);
+      attrCatBuffer.setRecord(attrCatRecord, j);
+      
+			cout << "Attribute name updated successfully from " << oldName << " to " << newName << " in relation " << relName << "\n\n";
+			return;
+    }
+    currAttrCatBlock=attrCatHeader.rblock;
+  }
+
+	if(foundRelation == false)
+		cout << "Relation " << relName << " not found\n"; // relation not found
+	else
+		cout << "Attribute " << oldName << " not found in relation " << relName << "\n"; // attribute not found
+	return;
+}
+
 int main(int argc, char *argv[]) {
   /* Initialize the Run Copy of Disk */
   Disk disk_run;
@@ -73,6 +106,8 @@ int main(int argc, char *argv[]) {
 
   // stage 2, display relations
 	displayRelations();
+  modifySchema("Students", "Class", "Batch");
+  displayRelations();
 
   // return FrontendInterface::handleFrontend(argc, argv);
   return 0;

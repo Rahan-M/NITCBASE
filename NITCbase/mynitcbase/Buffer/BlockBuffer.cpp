@@ -57,3 +57,25 @@ int RecBuffer::getRecord(union Attribute *rec, int slotNum) {
 
   return SUCCESS;
 }
+
+int RecBuffer::setRecord(union Attribute *rec, int slotNum) {
+    HeadInfo head;
+    this->getHeader(&head); // same as BlockBuffer::getHeader(&head);
+
+    int attrCount=head.numAttrs;
+    int slotCount=head.numSlots;
+
+    unsigned char buffer[BLOCK_SIZE];
+
+    // read the block at this.blockNum into the buffer
+    Disk::readBlock(buffer, this->blockNum);
+
+    int recordSize=attrCount*ATTR_SIZE;
+    unsigned char *slotPointer = buffer + HEADER_SIZE + slotCount + recordSize*slotNum; /* calculate buffer + offset */
+
+    // load the record into the rec data structure
+    memcpy(slotPointer, rec, recordSize);
+    Disk::writeBlock(buffer, this->blockNum);
+    
+    return SUCCESS;
+}
