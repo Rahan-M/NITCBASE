@@ -16,7 +16,7 @@ class StaticBuffer {
 
  private:
   // fields
-  static unsigned char blocks[BUFFER_CAPACITY][BLOCK_SIZE];
+  static unsigned char blocks[BUFFER_CAPACITY][BLOCK_SIZE]; // 32 , 2048
   static struct BufferMetaInfo metainfo[BUFFER_CAPACITY];
   static unsigned char blockAllocMap[DISK_BLOCKS];
 
