@@ -96,18 +96,18 @@ void modifySchema(const char *relName, const char *oldName, const char *newName)
 int main(int argc, char *argv[]) {
   /* Initialize the Run Copy of Disk */
   Disk disk_run;
-  // StaticBuffer buffer;
+  StaticBuffer buffer;
   // OpenRelTable cache;
 
   // stage 1, print block allocation map
-  unsigned char buffer[BLOCK_SIZE];
-	Disk::readBlock(buffer, 0);
-	printBuffer(buffer,  64);
+  // unsigned char tempBuffer[BLOCK_SIZE];
+	// Disk::readBlock(tempBuffer, 0);
+	// printBuffer(tempBuffer,  64);
 
   // stage 2, display relations
-	displayRelations();
-  modifySchema("Students", "Class", "Batch");
-  displayRelations();
+	// displayRelations();
+  // modifySchema("Students", "Class", "Batch");
+  // displayRelations();
 
   // return FrontendInterface::handleFrontend(argc, argv);
   return 0;
