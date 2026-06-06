@@ -93,22 +93,43 @@ void modifySchema(const char *relName, const char *oldName, const char *newName)
 	return;
 }
 
+int getRecordByName(const char *relName, Attribute *relCatBuf){
+  RecBuffer relCatBuffer(RELCAT_BLOCK);
+  HeadInfo relCatHeader;
+  relCatBuffer.getHeader(&relCatHeader);
+
+  int n=relCatHeader.numEntries;
+  for(int i=0;i<n;i++){
+    Attribute relCatRecord[RELCAT_NO_ATTRS]; // will store the record from the relation catalog
+    relCatBuffer.getRecord(relCatRecord, i);
+    if(strcmp(relName, relCatRecord->sVal)==0){
+      *relCatBuf=*relCatRecord;
+      return i;
+    }
+  }
+  return E_RELNOTEXIST;
+}
+
 int main(int argc, char *argv[]) {
   /* Initialize the Run Copy of Disk */
   Disk disk_run;
   StaticBuffer buffer;
-  // OpenRelTable cache;
+  OpenRelTable cache;
 
-  // stage 1, print block allocation map
-  // unsigned char tempBuffer[BLOCK_SIZE];
-	// Disk::readBlock(tempBuffer, 0);
-	// printBuffer(tempBuffer,  64);
-
-  // stage 2, display relations
-	// displayRelations();
-  // modifySchema("Students", "Class", "Batch");
   // displayRelations();
 
+	for (int relId = 0; relId <=1; relId++) { // relId<=2 for exercise
+		RelCatEntry relCatBuffer;
+		RelCacheTable::getRelCatEntry(relId, &relCatBuffer);
+		printf ("Relation: %s\n", relCatBuffer.relName);
+		for (int attrIndex = 0; attrIndex < relCatBuffer.numAttrs; attrIndex++) {
+			AttrCatEntry attrCatBuffer;
+			AttrCacheTable::getAttrCatEntry(relId, attrIndex, &attrCatBuffer);
+			const char *attrType = attrCatBuffer.attrType == NUMBER ? "NUM" : "STR";
+			printf ("    %s: %s\n", attrCatBuffer.attrName, attrType);
+		}
+		printf("\n");
+	}
   // return FrontendInterface::handleFrontend(argc, argv);
   return 0;
 }

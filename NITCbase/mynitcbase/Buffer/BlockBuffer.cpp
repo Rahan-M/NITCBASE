@@ -15,6 +15,7 @@ RecBuffer::RecBuffer(int blockNum) : BlockBuffer::BlockBuffer(blockNum) {}
 /*
   Used to get the header of the block into the location pointed to by `head`
   NOTE: this function expects the caller to allocate memory for `head`
+  FISINISHED AT STAGE 3
 */
 int BlockBuffer::getHeader(struct HeadInfo *head) {
   unsigned char *bufferPtr;
@@ -35,10 +36,10 @@ int BlockBuffer::getHeader(struct HeadInfo *head) {
   return SUCCESS;
 }
 
-// load the record at slotNum into the argument pointer
 /*
   Used to get the record at slot `slotNum` into the array `rec`
   NOTE: this function expects the caller to allocate memory for `rec`
+  FINISHED AT STAGE 3
 */
 int RecBuffer::getRecord(union Attribute *rec, int slotNum) {
   struct HeadInfo head;
