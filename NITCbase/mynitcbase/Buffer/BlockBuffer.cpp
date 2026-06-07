@@ -37,6 +37,27 @@ int BlockBuffer::getHeader(struct HeadInfo *head) {
 }
 
 /*
+Used to load a block to the buffer and get a pointer to it.
+NOTE: this function expects the caller to allocate memory for the argument
+*/
+int BlockBuffer::loadBlockAndGetBufferPtr(unsigned char **bufferPtr){
+  // check if block is alr present
+  int bufferNum=StaticBuffer::getBufferNum(this->blockNum);
+  if(bufferNum == E_BLOCKNOTINBUFFER){
+    bufferNum = StaticBuffer::getFreeBuffer(this->blockNum);
+    
+    if(bufferNum == E_OUTOFBOUND)
+      return E_OUTOFBOUND;
+
+    Disk::readBlock(StaticBuffer::blocks[bufferNum], this->blockNum);
+  }
+
+  *bufferPtr=StaticBuffer::blocks[bufferNum];
+  return SUCCESS;
+}
+
+
+/*
   Used to get the record at slot `slotNum` into the array `rec`
   NOTE: this function expects the caller to allocate memory for `rec`
   FINISHED AT STAGE 3
@@ -94,22 +115,44 @@ int RecBuffer::setRecord(union Attribute *rec, int slotNum) {
     return SUCCESS;
 }
 
-/*
-Used to load a block to the buffer and get a pointer to it.
-NOTE: this function expects the caller to allocate memory for the argument
+/* used to get the slotmap from a record block
+NOTE: this function expects the caller to allocate memory for `*slotMap`
 */
-int BlockBuffer::loadBlockAndGetBufferPtr(unsigned char **bufferPtr){
-  // check if block is alr present
-  int bufferNum=StaticBuffer::getBufferNum(this->blockNum);
-  if(bufferNum == E_BLOCKNOTINBUFFER){
-    bufferNum = StaticBuffer::getFreeBuffer(this->blockNum);
-    
-    if(bufferNum == E_OUTOFBOUND)
-      return E_OUTOFBOUND;
+int RecBuffer::getSlotMap(unsigned char *slotMap) {
+  unsigned char *bufferPtr;
 
-    Disk::readBlock(StaticBuffer::blocks[bufferNum], this->blockNum);
+  // get the starting address of the buffer containing the block using loadBlockAndGetBufferPtr().
+  int ret = loadBlockAndGetBufferPtr(&bufferPtr);
+  if (ret != SUCCESS) {
+    return ret;
   }
 
-  *bufferPtr=StaticBuffer::blocks[bufferNum];
+  // get the header of the block using getHeader() function
+  struct HeadInfo head;
+  this->getHeader(&head);
+
+  /* number of slots in block from header */;
+  int slotCount = head.numSlots;
+
+  // get a pointer to the beginning of the slotmap in memory by offsetting HEADER_SIZE
+  unsigned char *slotMapInBuffer = bufferPtr + HEADER_SIZE;
+
+  // copy the values from `slotMapInBuffer` to `slotMap` (size is `slotCount`)
+  memcpy(slotMap, slotMapInBuffer, slotCount);
   return SUCCESS;
+}
+
+int compareAttrs(union Attribute attr1, union Attribute attr2, int attrType) {
+  // returns 1 if attr1 greater 0 if equal and -1 if lesser
+  double diff;
+  if(attrType == STRING)
+      diff = strcmp(attr1.sVal, attr2.sVal);
+  else
+      diff = attr1.nVal - attr2.nVal;
+
+  if(diff > 0) return 1;
+  if(diff < 0) return -1;
+  if(diff == 0) return 0;
+
+  return 0;
 }

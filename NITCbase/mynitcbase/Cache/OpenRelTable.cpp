@@ -44,26 +44,26 @@ OpenRelTable::OpenRelTable() {
 
 
   // 1.c Setting up student
-  // HeadInfo relCatHeader;
-  // relCatBlock.getHeader(&relCatHeader);
-  // int slot=-1;
-  // int numRels=relCatHeader.numEntries;
-  // for(int i=0;i<numRels;i++){
-  //   // Attribute relCatRecord[RELCAT_NO_ATTRS]; // will store the record from the relation catalog
-  //   relCatBlock.getRecord(relCatRecord, i);
-  //   if(strcmp("Students", relCatRecord[RELCAT_REL_NAME_INDEX].sVal)==0){
-  //     slot=i;
-  //     break;
-  //   }
-  // }
+  HeadInfo relCatHeader;
+  relCatBlock.getHeader(&relCatHeader);
+  int slot=-1;
+  int numRels=relCatHeader.numEntries;
+  for(int i=0;i<numRels;i++){
+    // Attribute relCatRecord[RELCAT_NO_ATTRS]; // will store the record from the relation catalog
+    relCatBlock.getRecord(relCatRecord, i);
+    if(strcmp("Students", relCatRecord[RELCAT_REL_NAME_INDEX].sVal)==0){
+      slot=i;
+      break;
+    }
+  }
 
-  // if(slot!=-1){
-  //   RelCacheTable::recordToRelCatEntry(relCatRecord, &relCacheEntry.relCatEntry);
-  //   relCacheEntry.recId.block=RELCAT_BLOCK;
-  //   relCacheEntry.recId.slot=slot;
-  //   RelCacheTable::relCache[ATTRCAT_RELID+1] = (struct RelCacheEntry*)malloc(sizeof(RelCacheEntry));
-  //   *(RelCacheTable::relCache[ATTRCAT_RELID+1]) = relCacheEntry;
-  // }else cout<<"\n\n\nRelation NOT FOUND\n\n\n\n";
+  if(slot!=-1){
+    RelCacheTable::recordToRelCatEntry(relCatRecord, &relCacheEntry.relCatEntry);
+    relCacheEntry.recId.block=RELCAT_BLOCK;
+    relCacheEntry.recId.slot=slot;
+    RelCacheTable::relCache[ATTRCAT_RELID+1] = (struct RelCacheEntry*)malloc(sizeof(RelCacheEntry));
+    *(RelCacheTable::relCache[ATTRCAT_RELID+1]) = relCacheEntry;
+  }else cout<<"\n\n\nRelation NOT FOUND\n\n\n\n";
 
 
   /************2. Setting up Attribute cache entries ************/
@@ -119,28 +119,26 @@ OpenRelTable::OpenRelTable() {
   AttrCacheTable::attrCache[ATTRCAT_RELID] = head /* head of the linked list */;
 
   // 2.c Student STAGE 3 EXERCICE
-  // if(slot!=-1){
-  //   head=(AttrCacheEntry*) malloc(sizeof(AttrCacheEntry));
-  //   temp=head; 
-  //   int numAttrs=RelCacheTable::relCache[ATTRCAT_RELID+1]->relCatEntry.numAttrs; 
-  //   for(int i=12;i<12+numAttrs;i++){
-  //     // iterate through all the attributes of the relation catalog and create a linked
-  //     attrCatBlock.getRecord(attrCatRecord, i); // slots 6-11 are for attribute catalog attributes
-  //     AttrCacheTable::recordToAttrCatEntry(attrCatRecord, &temp->attrCatEntry);  
-  //     temp->recId.block=ATTRCAT_BLOCK;
-  //     temp->recId.slot=i;
+  if(slot!=-1){
+    head=(AttrCacheEntry*) malloc(sizeof(AttrCacheEntry));
+    temp=head; 
+    int numAttrs=RelCacheTable::relCache[ATTRCAT_RELID+1]->relCatEntry.numAttrs; 
+    for(int i=12;i<12+numAttrs;i++){
+      // iterate through all the attributes of the relation catalog and create a linked
+      attrCatBlock.getRecord(attrCatRecord, i); // slots 6-11 are for attribute catalog attributes
+      AttrCacheTable::recordToAttrCatEntry(attrCatRecord, &temp->attrCatEntry);  
+      temp->recId.block=ATTRCAT_BLOCK;
+      temp->recId.slot=i;
 
-  //     if(i<12+numAttrs-1)
-  //       temp->next=(AttrCacheEntry*) malloc(sizeof(AttrCacheEntry));
-  //     else
-  //       temp->next=nullptr;
-  //     temp=temp->next;
-  //   } 
-  //   AttrCacheTable::attrCache[ATTRCAT_RELID+1] = head /* head of the linked list */;
-  // }
+      if(i<12+numAttrs-1)
+        temp->next=(AttrCacheEntry*) malloc(sizeof(AttrCacheEntry));
+      else
+        temp->next=nullptr;
+      temp=temp->next;
+    } 
+    AttrCacheTable::attrCache[ATTRCAT_RELID+1] = head /* head of the linked list */;
+  }
 }
-
-
 
 OpenRelTable::~OpenRelTable() {
     // free all the memory that you allocated in the constructor
@@ -158,4 +156,13 @@ OpenRelTable::~OpenRelTable() {
             free(temp);
         } 
     }
+}
+
+int OpenRelTable::getRelId(char relName[ATTR_SIZE]) {
+
+  if(strcmp(relName ,RELCAT_RELNAME)==0) return RELCAT_RELID;
+  if(strcmp(relName ,ATTRCAT_RELNAME)==0) return ATTRCAT_RELID;
+  if(strcmp(relName ,"Students")==0) return ATTRCAT_RELID+1;
+
+  return E_RELNOTOPEN;
 }
