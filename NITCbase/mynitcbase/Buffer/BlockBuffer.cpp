@@ -38,12 +38,29 @@ int BlockBuffer::getHeader(struct HeadInfo *head) {
 
 /*
 Used to load a block to the buffer and get a pointer to it.
-NOTE: this function expects the caller to allocate memory for the argument
+NOTE: This function will NOT check if the block has been initialised as a
+record or an index block. It will copy whatever content is there in that
+disk block to the buffer.
+Also ensure that all the methods accessing and updating the block's data
+should call the loadBlockAndGetBufferPtr() function before the access or
+update is done. This is because the block might not be present in the
+buffer due to LRU buffer replacement. So, it will need to be bought back
+to the buffer before any operations can be done.
 */
+
 int BlockBuffer::loadBlockAndGetBufferPtr(unsigned char **bufferPtr){
   // check if block is alr present
   int bufferNum=StaticBuffer::getBufferNum(this->blockNum);
-  if(bufferNum == E_BLOCKNOTINBUFFER){
+  if(bufferNum != E_BLOCKNOTINBUFFER){
+    // block alraedy in buffer
+    
+    // timestamps of all other occupied buffers in BufferMetaInfo.
+    for(int i=0;i<BUFFER_CAPACITY;i++)
+      StaticBuffer::metainfo[i].timeStamp++;
+    
+    // set the timestamp of the corresponding buffer to 0 and increment the
+    StaticBuffer::metainfo[bufferNum].blockNum=0;
+  }else{
     bufferNum = StaticBuffer::getFreeBuffer(this->blockNum);
     
     if(bufferNum == E_OUTOFBOUND)
@@ -51,7 +68,8 @@ int BlockBuffer::loadBlockAndGetBufferPtr(unsigned char **bufferPtr){
 
     Disk::readBlock(StaticBuffer::blocks[bufferNum], this->blockNum);
   }
-
+    
+  
   *bufferPtr=StaticBuffer::blocks[bufferNum];
   return SUCCESS;
 }
@@ -94,23 +112,49 @@ int RecBuffer::getRecord(union Attribute *rec, int slotNum) {
 }
 
 int RecBuffer::setRecord(union Attribute *rec, int slotNum) {
+    unsigned char *bufferPtr;
+
+    /* get the starting address of the buffer containing the block
+       using loadBlockAndGetBufferPtr(&bufferPtr). */
+    int ret=loadBlockAndGetBufferPtr(&bufferPtr);
+
+    // if loadBlockAndGetBufferPtr(&bufferPtr) != SUCCESS
+        // return the value returned by the call.
+    if(ret!=SUCCESS)
+      return ret;
+
+    /* get the header of the block using the getHeader() function */
     HeadInfo head;
-    this->getHeader(&head); // same as BlockBuffer::getHeader(&head);
+    getHeader(&head); // same as BlockBuffer::getHeader(&head); or this->getHeader(&head)
 
+    // get number of attributes in the block.
     int attrCount=head.numAttrs;
+
+    // get the number of slots in the block.
     int slotCount=head.numSlots;
+    if(slotNum<0 || slotNum>=slotCount)
+      return E_OUTOFBOUND;
 
-    unsigned char buffer[BLOCK_SIZE];
-
-    // read the block at this.blockNum into the buffer
-    Disk::readBlock(buffer, this->blockNum);
-
+    /* calculate buffer + offset */
+    /* offset bufferPtr to point to the beginning of the record at required
+       slot. the block contains the header, the slotmap, followed by all
+       the records. so, for example,
+       record at slot x will be at bufferPtr + HEADER_SIZE + (x*recordSize)
+       (hint: a record will be of size ATTR_SIZE * numAttrs)
+       */
+      
     int recordSize=attrCount*ATTR_SIZE;
-    unsigned char *slotPointer = buffer + HEADER_SIZE + slotCount + recordSize*slotNum; /* calculate buffer + offset */
-
-    // load the record into the rec data structure
+    unsigned char *slotPointer = bufferPtr + HEADER_SIZE + slotCount + recordSize*slotNum; 
+      
+    // copy the record from `rec` to buffer using memcpy
     memcpy(slotPointer, rec, recordSize);
-    Disk::writeBlock(buffer, this->blockNum);
+
+    // update dirty bit using setDirtyBit()
+    StaticBuffer::setDirtyBit(this->blockNum);
+
+    /* (the above function call should not fail since the block is already
+    in buffer and the blockNum is valid. If the call does fail, there
+    exists some other issue in the code) */
     
     return SUCCESS;
 }
