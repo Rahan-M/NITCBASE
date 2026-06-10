@@ -1,0 +1,11 @@
+DROP table a;
+DROP table b;
+DROP table c;
+DROP table d;
+DROP table e;
+DROP table f;
+DROP table g;
+DROP table h;
+DROP table i;
+DROP table j;
+DROP table k;
