@@ -60,7 +60,7 @@ int BlockBuffer::loadBlockAndGetBufferPtr(unsigned char **bufferPtr){
       if(!StaticBuffer::metainfo[i].free)
       StaticBuffer::metainfo[i].timeStamp++;
     
-    StaticBuffer::metainfo[bufferNum].timeStamp=0;
+    StaticBuffer::metainfo[bufferNum].timeStamp=0; // I was setting blockNo to 0
     // set the timestamp of the corresponding buffer to 0 and increment the
   }else{
     bufferNum = StaticBuffer::getFreeBuffer(this->blockNum);
