@@ -314,13 +314,36 @@ int OpenRelTable::closeRel(int relId) {
   if (tableMetaInfo[relId].free) {
     return E_RELNOTOPEN;
   }
+
+  if (RelCacheTable::relCache[relId]->dirty){
+
+    /* Get the Relation Catalog entry from RelCacheTable::relCache
+    Then convert it to a record using RelCacheTable::relCatEntryToRecord(). */
+    Attribute record[RELCAT_NO_ATTRS];
+    RelCacheTable::relCatEntryToRecord(&(RelCacheTable::relCache[relId]->relCatEntry), record);
+
+    // recid field of relCache stores recordId of where the relation catalog entry of this relation
+    // i.e this is where the relation catalog entry of relId relation is stored
+    RecId recId=RelCacheTable::relCache[relId]->recId;
   
-  // free the memory allocated in the relation and attribute caches which was
-  // allocated in the OpenRelTable::openRel() function
-  // update `relCache` and `attrCache` to set the entry at `relId` to nullptr
+    // declaring an object of RecBuffer class to write back to the buffer
+    RecBuffer relCatBlock(recId.block);
+
+    // Write back to the buffer using relCatBlock.setRecord() with recId.slot
+    relCatBlock.setRecord(record, recId.slot);
+  }
+  
   free(RelCacheTable::relCache[relId]);
   RelCacheTable::relCache[relId]=nullptr;
 
+  /****** Releasing the Attribute Cache entry of the relation ******/
+  // free the memory allocated in the attribute caches which was
+  // allocated in the OpenRelTable::openRel() function
+  
+  // (because we are not modifying the attribute cache at this stage,
+  // write-back is not required. We will do it in subsequent
+  // stages when it becomes needed)
+  
   AttrCacheEntry* head=AttrCacheTable::attrCache[relId];
   AttrCacheEntry* temp=nullptr;
   // n stores number of attributes in relational catalog, Which is 6 ofcourse
@@ -331,6 +354,7 @@ int OpenRelTable::closeRel(int relId) {
   } 
   AttrCacheTable::attrCache[relId] = nullptr;
 
+  /****** Set the Open Relation Table entry of the relation as free ******/
   // update `tableMetaInfo` to set `relId` as a free slot
   tableMetaInfo[relId].free=true;
   return SUCCESS;
