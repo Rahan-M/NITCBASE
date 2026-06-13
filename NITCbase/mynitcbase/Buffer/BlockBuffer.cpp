@@ -2,7 +2,8 @@
 #include "BlockBuffer.h"
 #include <cstdlib>
 #include <cstring>
-
+#include <iostream>
+using namespace std;
 
 BlockBuffer::BlockBuffer(int blockNum) {
   // initialise this.blockNum with the argument
@@ -56,10 +57,11 @@ int BlockBuffer::loadBlockAndGetBufferPtr(unsigned char **bufferPtr){
     
     // timestamps of all other occupied buffers in BufferMetaInfo.
     for(int i=0;i<BUFFER_CAPACITY;i++)
+      if(!StaticBuffer::metainfo[i].free)
       StaticBuffer::metainfo[i].timeStamp++;
     
+    StaticBuffer::metainfo[bufferNum].timeStamp=0;
     // set the timestamp of the corresponding buffer to 0 and increment the
-    StaticBuffer::metainfo[bufferNum].blockNum=0;
   }else{
     bufferNum = StaticBuffer::getFreeBuffer(this->blockNum);
     
@@ -112,6 +114,7 @@ int RecBuffer::getRecord(union Attribute *rec, int slotNum) {
 }
 
 int RecBuffer::setRecord(union Attribute *rec, int slotNum) {
+    cout<<"Invoked Set Record"<<endl;
     unsigned char *bufferPtr;
 
     /* get the starting address of the buffer containing the block
@@ -125,7 +128,7 @@ int RecBuffer::setRecord(union Attribute *rec, int slotNum) {
 
     /* get the header of the block using the getHeader() function */
     HeadInfo head;
-    getHeader(&head); // same as BlockBuffer::getHeader(&head); or this->getHeader(&head)
+    this->getHeader(&head); // same as BlockBuffer::getHeader(&head); or this->getHeader(&head)
 
     // get number of attributes in the block.
     int attrCount=head.numAttrs;

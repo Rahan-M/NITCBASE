@@ -1,6 +1,8 @@
 #include "Schema.h"
 #include <cmath>
 #include <cstring>
+#include <iostream>
+using namespace std;
 
 int Schema::openRel(char relName[ATTR_SIZE]) {
   int ret = OpenRelTable::openRel(relName);
@@ -32,14 +34,14 @@ int Schema::closeRel(char relName[ATTR_SIZE]) {
   return OpenRelTable::closeRel(relId);
 }
 
-int renameRel(char oldRelName[ATTR_SIZE], char newRelName[ATTR_SIZE]) {
+int Schema::renameRel(char oldRelName[ATTR_SIZE], char newRelName[ATTR_SIZE]) {
   // if the oldRelName or newRelName is either Relation Catalog or Attribute Catalog,
       // return E_NOTPERMITTED
       // (check if the relation names are either "RELATIONCAT" and "ATTRIBUTECAT".
       // you may use the following constants: RELCAT_RELNAME and ATTRCAT_RELNAME)
-  if(strcmp(oldRelName, RELCAT_RELNAME)==0 || strcmp(oldRelName, ATTRCAT_RELNAME)==0)
-    return E_NOTPERMITTED;
-
+  if(strcmp(oldRelName, RELCAT_RELNAME) == 0 || strcmp(oldRelName, ATTRCAT_RELNAME) == 0 || strcmp(newRelName, RELCAT_RELNAME) == 0 || strcmp(newRelName, ATTRCAT_RELNAME) == 0) {
+      return E_NOTPERMITTED;
+  }
   // if the relation is open
   //    (check if OpenRelTable::getRelId() returns E_RELNOTOPEN)
   //    return E_RELOPEN
@@ -48,6 +50,7 @@ int renameRel(char oldRelName[ATTR_SIZE], char newRelName[ATTR_SIZE]) {
   
   // retVal = BlockAccess::renameRelation(oldRelName, newRelName);
   // return retVal
+  cout<<"Schema layer invoked "<<oldRelName<<' '<<newRelName<<endl;
   return BlockAccess::renameRelation(oldRelName, newRelName);
 }
 

@@ -1,6 +1,8 @@
 #include "BlockAccess.h"
 #include <stdlib.h>
 #include <cstring>
+#include <iostream>
+using namespace std;
 
 RecId BlockAccess::linearSearch(int relId, char attrName[ATTR_SIZE], union Attribute attrVal, int op) {
     // relId is index of this relation in the relation cache
@@ -128,6 +130,7 @@ RecId BlockAccess::linearSearch(int relId, char attrName[ATTR_SIZE], union Attri
 }
 
 int BlockAccess::renameRelation(char oldName[ATTR_SIZE], char newName[ATTR_SIZE]){
+    // cout<<"Block access layer invoked last "<<oldName<<' '<<newName<<endl;
     /* reset the searchIndex of the relation catalog using
        RelCacheTable::resetSearchIndex() */
     RelCacheTable::resetSearchIndex(RELCAT_RELID);
@@ -155,7 +158,7 @@ int BlockAccess::renameRelation(char oldName[ATTR_SIZE], char newName[ATTR_SIZE]
     
     // If relation with name oldName does not exist (result of linearSearch is {-1, -1})
     //    return E_RELNOTEXIST;
-
+    
     if(oldRel.block==-1 || oldRel.slot==-1)
         return E_RELNOTEXIST;
 
@@ -169,7 +172,12 @@ int BlockAccess::renameRelation(char oldName[ATTR_SIZE], char newName[ATTR_SIZE]
        (use RELCAT_REL_NAME_INDEX) */
     // set back the record value using RecBuffer.setRecord
     strcpy(relCatRecord[RELCAT_REL_NAME_INDEX].sVal, newName);
+    printf("%s\n", relCatRecord[RELCAT_REL_NAME_INDEX].sVal);
+    // printf("%s\n", attrCatRecord[ATTRCAT_REL_NAME_INDEX].sVal);
     relCatBuffer.setRecord(relCatRecord, oldRel.slot);
+    // relCatBuffer.getRecord(relCatRecord, oldRel.slot);
+    printf("%s\n", relCatRecord[RELCAT_REL_NAME_INDEX].sVal);
+    // cout<<"Block access layer invoked last"<<endl;
     /*
     update all the attribute catalog entries in the attribute catalog corresponding
     to the relation with relation name oldName to the relation name newName
@@ -194,6 +202,7 @@ int BlockAccess::renameRelation(char oldName[ATTR_SIZE], char newName[ATTR_SIZE]
         attrCatBuffer.setRecord(attrCatRecord, attrId.slot);
     }
 
+    // cout<<"Block access layer invoked last"<<endl;
     return SUCCESS;
 }
 
