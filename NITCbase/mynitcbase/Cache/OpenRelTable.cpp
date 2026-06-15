@@ -150,11 +150,11 @@ OpenRelTable::OpenRelTable() {
 
 OpenRelTable::~OpenRelTable() {
     // close all open relations (from rel-id = 2 onwards. Why?)
-    for (int i = 2; i < MAX_OPEN; ++i) {
-      if (!tableMetaInfo[i].free) {
+    for (int i = 2; i < MAX_OPEN; ++i) 
+      if (!tableMetaInfo[i].free) 
         OpenRelTable::closeRel(i); // we will implement this function later
-      }
-    }
+      
+    
 
     // free all the memory that you allocated in the constructor
     for(int i=0;i<=1;i++){
@@ -359,3 +359,4 @@ int OpenRelTable::closeRel(int relId) {
   tableMetaInfo[relId].free=true;
   return SUCCESS;
 }
+
