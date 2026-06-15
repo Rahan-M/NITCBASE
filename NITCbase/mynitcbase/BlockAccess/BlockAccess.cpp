@@ -274,6 +274,7 @@ int BlockAccess::renameAttribute(char relName[ATTR_SIZE], char oldName[ATTR_SIZE
 }
 
 int BlockAccess::insert(int relId, Attribute *record) {
+    // cout<<record[1].nVal<<endl;
     // get the relation catalog entry from relation cache
     // ( use RelCacheTable::getRelCatEntry() of Cache Layer)
     RelCatEntry relCatEntry;
@@ -446,3 +447,7 @@ int BlockAccess::insert(int relId, Attribute *record) {
     RelCacheTable::setRelCatEntry(relId, &relCatEntry); 
     return SUCCESS;
 }
+
+Open Table Locations
+Insert Into Locations Values (nlhc, 300)
+// SELECT * FROM Locations INTO null WHERE capacity>0;

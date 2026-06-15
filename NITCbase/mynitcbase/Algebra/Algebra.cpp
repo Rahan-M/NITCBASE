@@ -1,6 +1,7 @@
 #include "Algebra.h"
 #include <iostream>
 #include <cstring>
+using namespace std;
 
 // will return if a string can be parsed as a floating point number
 bool isNumber(char *str) {
@@ -116,6 +117,7 @@ int Algebra::insert(char relName[ATTR_SIZE], int nAttrs, char record[][ATTR_SIZE
   // record is an array of strings with each entry corresponding to noe record
   // if relName is equal to "RELATIONCAT" or "ATTRIBUTECAT"
   // return E_NOTPERMITTED;
+  // cout<<atof(record[1])<<endl;
   if(strcmp(relName, RELCAT_RELNAME)==0 || strcmp(relName, RELCAT_RELNAME)==0)
     return E_NOTPERMITTED;
 
@@ -147,21 +149,22 @@ int Algebra::insert(char relName[ATTR_SIZE], int nAttrs, char record[][ATTR_SIZE
   for(int i=0;i<nAttrs;i++){
       // get the attr-cat entry for the i'th attribute from the attr-cache
       // (use AttrCacheTable::getAttrCatEntry())
-      AttrCacheTable::getAttrCatEntry(relId, 0, &attrCatEntry);
+      AttrCacheTable::getAttrCatEntry(relId, i, &attrCatEntry);
       int type=attrCatEntry.attrType;
       // let type = attrCatEntry.attrType;
 
       if (type == NUMBER){
           // if the char array record[i] can be converted to a number
           // (check this using isNumber() function)
-          if(isNumber(record[i]))
-              recordValues[i].nVal=atof(record[i]);
-              /* convert the char array to numeral and store it
-                  at recordValues[i].nVal using atof() */
-          
-          else
-              return E_ATTRTYPEMISMATCH;
-          
+          if(isNumber(record[i])){
+            // cout<<i<<endl;
+            recordValues[i].nVal=atof(record[i]);
+            /* convert the char array to numeral and store it
+                at recordValues[i].nVal using atof() */
+          }
+          else{
+            return E_ATTRTYPEMISMATCH;
+          }
       }
       else if (type == STRING)
         strcpy(recordValues[i].sVal,record[i]);    
@@ -169,6 +172,7 @@ int Algebra::insert(char relName[ATTR_SIZE], int nAttrs, char record[][ATTR_SIZE
   }
   // insert the record by calling BlockAccess::insert() function
   // let retVal denote the return value of insert call
+  // cout<<recordValues[1].nVal<<endl;
   int retVal=BlockAccess::insert(relId, recordValues);
 
   return retVal;

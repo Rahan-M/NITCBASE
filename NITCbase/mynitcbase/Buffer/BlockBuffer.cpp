@@ -167,7 +167,7 @@ int RecBuffer::getRecord(union Attribute *rec, int slotNum) {
 }
 
 int RecBuffer::setRecord(union Attribute *rec, int slotNum) {
-    cout<<"Invoked Set Record"<<endl;
+    // cout<<"Invoked Set Record"<<endl;
     unsigned char *bufferPtr;
 
     /* get the starting address of the buffer containing the block
