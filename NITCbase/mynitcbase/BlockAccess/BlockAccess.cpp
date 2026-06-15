@@ -447,7 +447,3 @@ int BlockAccess::insert(int relId, Attribute *record) {
     RelCacheTable::setRelCatEntry(relId, &relCatEntry); 
     return SUCCESS;
 }
-
-Open Table Locations
-Insert Into Locations Values (nlhc, 300)
-// SELECT * FROM Locations INTO null WHERE capacity>0;
