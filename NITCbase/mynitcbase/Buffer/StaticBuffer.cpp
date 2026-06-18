@@ -22,6 +22,7 @@ StaticBuffer::StaticBuffer(){
 }
 
 StaticBuffer::~StaticBuffer(){
+    // Write back bmap
     for(int i=0, bMapSlot=0;i<4;i++){
         unsigned char tempBuff[BLOCK_SIZE];
         for(int slot=0;slot<BLOCK_SIZE;slot++, bMapSlot++)

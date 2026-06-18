@@ -64,3 +64,13 @@ void AttrCacheTable::recordToAttrCatEntry(union Attribute record[ATTRCAT_NO_ATTR
   attrCatEntry->rootBlock=(int)record[ATTRCAT_ROOT_BLOCK_INDEX].nVal;
   attrCatEntry->primaryFlag=(bool)record[ATTRCAT_ATTR_TYPE_INDEX].nVal;
 }
+
+void AttrCacheTable::attrCatEntryToRecord(AttrCatEntry *attrCatEntry, union Attribute record[ATTRCAT_NO_ATTRS]){
+    // copy values from attrCatEntry fields to record
+    strcpy(record[ATTRCAT_REL_NAME_INDEX].sVal, attrCatEntry->relName); // Relation Name
+    strcpy(record[ATTRCAT_ATTR_NAME_INDEX].sVal, attrCatEntry->attrName); // Attribute Name
+    record[ATTRCAT_OFFSET_INDEX].nVal = attrCatEntry->offset; // Offset
+    record[ATTRCAT_ATTR_TYPE_INDEX].nVal = attrCatEntry->attrType; // Attribute Type
+    record[ATTRCAT_ROOT_BLOCK_INDEX].nVal = attrCatEntry->rootBlock; // Root Block
+    record[ATTRCAT_PRIMARY_FLAG_INDEX].nVal = attrCatEntry->primaryFlag; // Primary Flag
+}

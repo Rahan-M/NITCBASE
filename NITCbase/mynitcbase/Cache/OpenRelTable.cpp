@@ -152,24 +152,48 @@ OpenRelTable::~OpenRelTable() {
     // close all open relations (from rel-id = 2 onwards. Why?)
     for (int i = 2; i < MAX_OPEN; ++i) 
       if (!tableMetaInfo[i].free) 
-        OpenRelTable::closeRel(i); // we will implement this function later
+        OpenRelTable::closeRel(i); 
       
-    
 
     // free all the memory that you allocated in the constructor
-    for(int i=0;i<=1;i++){
-        free(RelCacheTable::relCache[i]);
-        RelCacheTable::relCache[i] = nullptr;
-        
-        AttrCacheEntry* head=AttrCacheTable::attrCache[i];
-        AttrCacheEntry* temp=nullptr;
-        // n stores number of attributes in relational catalog, Which is 6 ofcourse
-        while(head!=nullptr){
-          temp=head;
-          head=head->next;
-          free(temp);
-        } 
-        AttrCacheTable::attrCache[i] = nullptr;
+    // and write back changes to relation catalog and attribute catalog entries
+    // of relation catalog and attribute catalog
+    for(int relId=RELCAT_RELID;relId<=ATTRCAT_RELID;relId++){
+      if(RelCacheTable::relCache[relId]->dirty) {
+        // Get the Relation Catalog entry from RelCacheTable::relCache
+        RelCatEntry relCatEntry=RelCacheTable::relCache[relId]->relCatEntry;
+
+        // Then convert it to a record using RelCacheTable::relCatEntryToRecord().
+        Attribute relCatRecord[RELCAT_NO_ATTRS];
+        RelCacheTable::relCatEntryToRecord(&relCatEntry, relCatRecord);
+
+        RecId recId=RelCacheTable::relCache[relId]->recId; // where the relation catalog entry is stored in disk
+        // declaring an object of RecBuffer class to write back to the buffer
+        RecBuffer relCatBlock(recId.block);
+
+        // Write back to the buffer using relCatBlock.setRecord() with recId.slot
+        relCatBlock.setRecord(relCatRecord, recId.slot);
+      }
+      free(RelCacheTable::relCache[relId]);
+      RelCacheTable::relCache[relId]=nullptr;
+
+      AttrCacheEntry* head=AttrCacheTable::attrCache[relId];
+      AttrCacheEntry* temp=nullptr;
+      // n stores number of attributes in relational catalog, Which is 6 ofcourse
+      while(head!=nullptr){
+        if(head->dirty){
+          AttrCatEntry attrCatEntry=AttrCacheTable::attrCache[relId]->attrCatEntry;
+          Attribute attrCatRecord[ATTRCAT_NO_ATTRS];
+          AttrCacheTable::attrCatEntryToRecord(&attrCatEntry, attrCatRecord);
+          RecId recId=AttrCacheTable::attrCache[relId]->recId;
+          RecBuffer attrCatBlock(recId.block);
+          attrCatBlock.setRecord(attrCatRecord, recId.slot);
+        }
+        temp=head;
+        head=head->next;
+        free(temp);
+      } 
+      AttrCacheTable::attrCache[relId] = nullptr;
     }
 }
 
@@ -300,7 +324,6 @@ int OpenRelTable::openRel(char relName[ATTR_SIZE]) {
 
   return relId;
 }
-
 
 int OpenRelTable::closeRel(int relId) {
   if (relId==0 || relId==1) {
