@@ -20,7 +20,7 @@ class BlockAccess {
 
   static int deleteRelation(char *relName);
 
-  static RecId linearSearch(int relId, char *attrName, Attribute attrVal, int op);
+  static RecId linearSearch(int relId, const char *constAttrName, Attribute attrVal, int op);
 
   static int project(int relId, Attribute *record);
 };
