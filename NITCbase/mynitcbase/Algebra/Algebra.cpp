@@ -172,7 +172,7 @@ int Algebra::select(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr
       first record.
   */
   RelCacheTable::resetSearchIndex(srcRelId);
-  // AttrCacheTable::resetSearchIndex(srcRelId, attr); // for b+ tree search
+  AttrCacheTable::resetSearchIndex(srcRelId, attr); // for b+ tree search
 
   while(BlockAccess::search(srcRelId, record, attr, attrVal, op)==SUCCESS){
     ret = BlockAccess::insert(targetRelId, record);
