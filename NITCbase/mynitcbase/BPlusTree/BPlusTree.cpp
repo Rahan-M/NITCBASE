@@ -42,6 +42,7 @@ RecId BPlusTree::bPlusSearch(int relId, char attrName[ATTR_SIZE], Attribute attr
 
         // declare leafHead which will be used to hold the header of leaf.
         HeadInfo leafHead;
+        leaf.getHeader(&leafHead);
 
         // load header into leafHead using BlockBuffer::getHeader().
 
