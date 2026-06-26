@@ -92,7 +92,7 @@ RecId BlockAccess::linearSearch(int relId, const char constAttrName[ATTR_SIZE], 
         int offset=attrCatEntry.offset;
         // get the record with id (block, slot) using RecBuffer::getRecord()
         // Attribute *record=(Attribute*) malloc(n*sizeof(Attribute));
-        Attribute *record= new Attribute[n];
+        Attribute *record =(Attribute *)malloc(sizeof(Attribute) * n);
         currBlock.getRecord(record, slot);
 
 
@@ -447,7 +447,38 @@ int BlockAccess::insert(int relId, Attribute *record) {
     // the relation. (use RelCacheTable::setRelCatEntry function)
     relCatEntry.numRecs++;
     RelCacheTable::setRelCatEntry(relId, &relCatEntry); 
-    return SUCCESS;
+
+    /* B+ Tree Insertions */
+    // (the following section is only relevant once indexing has been implemented)
+
+    int flag = SUCCESS;
+    // Iterate over all the attributes of the relation
+    // (let attrOffset be iterator ranging from 0 to numOfAttributes-1)
+    for(int i=0;i<relCatEntry.numAttrs;i++){
+        // get the attribute catalog entry for the attribute from the attribute cache
+        // (use AttrCacheTable::getAttrCatEntry() with args relId and attrOffset)
+        AttrCatEntry attrCatEntry;
+        AttrCacheTable::getAttrCatEntry(relId, i, &attrCatEntry);
+
+        // get the root block field from the attribute catalog entry
+        int rootBlk=attrCatEntry.rootBlock;
+
+        // if index exists for the attribute(i.e. rootBlock != -1)
+        if(rootBlk!=-1){
+            /* insert the new record into the attribute's bplus tree using
+             BPlusTree::bPlusInsert()*/
+            int attrOffset=attrCatEntry.offset;
+            int retVal = BPlusTree::bPlusInsert(relId, attrCatEntry.attrName, record[attrOffset], rec_id);
+
+            if (retVal == E_DISKFULL) {
+                //(index for this attribute has been destroyed)
+                // flag = E_INDEX_BLOCKS_RELEASED
+                flag=E_INDEX_BLOCKS_RELEASED;
+            }
+        }
+    }
+
+    return flag;
 }
 
 /*
@@ -651,6 +682,7 @@ int BlockAccess::deleteRelation(char relName[ATTR_SIZE]) {
         // (the following part is only relevant once indexing has been implemented)
         // if index exists for the attribute (rootBlock != -1), call bplus destroy
         if (rootBlock != -1) {
+            BPlusTree::bPlusDestroy(rootBlock);
             // delete the bplus tree rooted at rootBlock using BPlusTree::bPlusDestroy()
         }
     }

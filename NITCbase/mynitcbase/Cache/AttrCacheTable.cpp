@@ -8,7 +8,7 @@ NOTE: this function expects the caller to allocate memory for `*attrCatBuf`
 */
 int AttrCacheTable::getAttrCatEntry(int relId, int attrOffset, AttrCatEntry* attrCatBuf) {
   // check if 0 <= relId < MAX_OPEN and return E_OUTOFBOUND otherwise
-    if(relId<0 || relId>MAX_OPEN)
+    if(relId<0 || relId>=MAX_OPEN)
         return E_OUTOFBOUND;
 
   // check if attrCache[relId] == nullptr and return E_RELNOTOPEN if true
@@ -30,7 +30,7 @@ int AttrCacheTable::getAttrCatEntry(int relId, int attrOffset, AttrCatEntry* att
 
 int AttrCacheTable::getAttrCatEntry(int relId, char attrName[ATTR_SIZE], AttrCatEntry* attrCatBuf) {
   // check that relId is valid and corresponds to an open relation
-  if(relId<0 || relId>MAX_OPEN)
+  if(relId<0 || relId>=MAX_OPEN)
       return E_OUTOFBOUND;
 
   // if there's no entry at the rel-id
@@ -62,7 +62,7 @@ void AttrCacheTable::recordToAttrCatEntry(union Attribute record[ATTRCAT_NO_ATTR
   attrCatEntry->attrType=(int)record[ATTRCAT_ATTR_TYPE_INDEX].nVal;
   attrCatEntry->offset=(int)record[ATTRCAT_OFFSET_INDEX].nVal;
   attrCatEntry->rootBlock=(int)record[ATTRCAT_ROOT_BLOCK_INDEX].nVal;
-  attrCatEntry->primaryFlag=(bool)record[ATTRCAT_ATTR_TYPE_INDEX].nVal;
+  attrCatEntry->primaryFlag=(bool)record[ATTRCAT_PRIMARY_FLAG_INDEX].nVal;
 }
 
 void AttrCacheTable::attrCatEntryToRecord(AttrCatEntry *attrCatEntry, union Attribute record[ATTRCAT_NO_ATTRS]){
@@ -78,7 +78,7 @@ void AttrCacheTable::attrCatEntryToRecord(AttrCatEntry *attrCatEntry, union Attr
 int AttrCacheTable::getSearchIndex(int relId, char attrName[ATTR_SIZE], IndexId *searchIndex) {
 
   // check that relId is valid and corresponds to an open relation
-  if(relId<0 || relId>MAX_OPEN)
+  if(relId<0 || relId>=MAX_OPEN)
       return E_OUTOFBOUND;
 
   // if there's no entry at the rel-id
@@ -99,7 +99,7 @@ int AttrCacheTable::getSearchIndex(int relId, char attrName[ATTR_SIZE], IndexId 
 
 int AttrCacheTable::getSearchIndex(int relId, int attrOffset, IndexId *searchIndex) {
   // check that relId is valid and corresponds to an open relation
-  if(relId<0 || relId>MAX_OPEN)
+  if(relId<0 || relId>=MAX_OPEN)
       return E_OUTOFBOUND;
 
   // if there's no entry at the rel-id
@@ -121,7 +121,7 @@ int AttrCacheTable::getSearchIndex(int relId, int attrOffset, IndexId *searchInd
 int AttrCacheTable::setSearchIndex(int relId, char attrName[ATTR_SIZE], IndexId *searchIndex) {
 
   // check that relId is valid and corresponds to an open relation
-  if(relId<0 || relId>MAX_OPEN)
+  if(relId<0 || relId>=MAX_OPEN)
       return E_OUTOFBOUND;
 
   // if there's no entry at the rel-id
@@ -143,7 +143,7 @@ int AttrCacheTable::setSearchIndex(int relId, char attrName[ATTR_SIZE], IndexId 
 int AttrCacheTable::setSearchIndex(int relId, int attrOffset, IndexId *searchIndex) {
 
   // check that relId is valid and corresponds to an open relation
-  if(relId<0 || relId>MAX_OPEN)
+  if(relId<0 || relId>=MAX_OPEN)
       return E_OUTOFBOUND;
 
   // if there's no entry at the rel-id
@@ -176,4 +176,54 @@ int AttrCacheTable::resetSearchIndex(int relId, int offset) {
   // set the search index to {-1, -1} using AttrCacheTable::setSearchIndex
   // return the value returned by setSearchIndex
   return setSearchIndex(relId, offset, &ind);
+}
+
+int AttrCacheTable::setAttrCatEntry(int relId, char attrName[ATTR_SIZE], AttrCatEntry *attrCatBuf) {
+
+    if(relId<0 || relId>=MAX_OPEN)
+        return E_OUTOFBOUND;
+
+    // if there's no entry at the rel-id
+    if(attrCache[relId]==nullptr)
+        return E_RELNOTOPEN;
+
+  for(AttrCacheEntry *head=attrCache[relId];head!=nullptr;head=head->next) {
+    if(strcmp(head->attrCatEntry.attrName, attrName)==0){
+      // copy the attrCatBuf to the corresponding Attribute Catalog entry in
+      // the Attribute Cache Table.
+      head->attrCatEntry=*attrCatBuf;
+
+      // set the dirty flag of the corresponding Attribute Cache entry in the
+      // Attribute Cache Table.
+      head->dirty=true;
+      return SUCCESS;
+    }
+  }
+
+  return E_ATTRNOTEXIST;
+}
+
+int AttrCacheTable::setAttrCatEntry(int relId, int attrOffset, AttrCatEntry *attrCatBuf) {
+
+    if(relId<0 || relId>=MAX_OPEN)
+        return E_OUTOFBOUND;
+
+    // if there's no entry at the rel-id
+    if(attrCache[relId]==nullptr)
+        return E_RELNOTOPEN;
+
+  for(AttrCacheEntry *head=attrCache[relId];head!=nullptr;head=head->next) {
+    if(head->attrCatEntry.offset==attrOffset){
+      // copy the attrCatBuf to the corresponding Attribute Catalog entry in
+      // the Attribute Cache Table.
+      head->attrCatEntry=*attrCatBuf;
+
+      // set the dirty flag of the corresponding Attribute Cache entry in the
+      // Attribute Cache Table.
+      head->dirty=true;
+      return SUCCESS;
+    }
+  }
+
+  return E_ATTRNOTEXIST;
 }

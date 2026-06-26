@@ -182,10 +182,10 @@ OpenRelTable::~OpenRelTable() {
       // n stores number of attributes in relational catalog, Which is 6 ofcourse
       while(head!=nullptr){
         if(head->dirty){
-          AttrCatEntry attrCatEntry=AttrCacheTable::attrCache[relId]->attrCatEntry;
+          AttrCatEntry attrCatEntry=head->attrCatEntry;
           Attribute attrCatRecord[ATTRCAT_NO_ATTRS];
           AttrCacheTable::attrCatEntryToRecord(&attrCatEntry, attrCatRecord);
-          RecId recId=AttrCacheTable::attrCache[relId]->recId;
+          RecId recId=head->recId;
           RecBuffer attrCatBlock(recId.block);
           attrCatBlock.setRecord(attrCatRecord, recId.slot);
         }
@@ -371,6 +371,14 @@ int OpenRelTable::closeRel(int relId) {
   AttrCacheEntry* temp=nullptr;
   // n stores number of attributes in relational catalog, Which is 6 ofcourse
   while(head!=nullptr){
+    if(head->dirty){
+      AttrCatEntry attrCatEntry=head->attrCatEntry;
+      Attribute attrCatRecord[ATTRCAT_NO_ATTRS];
+      AttrCacheTable::attrCatEntryToRecord(&attrCatEntry, attrCatRecord);
+      RecId recId=head->recId;
+      RecBuffer attrCatBlock(recId.block);
+      attrCatBlock.setRecord(attrCatRecord, recId.slot);
+    }
     temp=head;
     head=head->next;
     free(temp);
