@@ -91,7 +91,8 @@ int Schema::createRel(char relName[], int nAttrs, char attrs[][ATTR_SIZE], int a
     // Search the relation catalog (relId given by the constant RELCAT_RELID)
     // for attribute value attribute "RelName" = relNameAsAttribute using
     // BlockAccess::linearSearch() with OP = EQ
-    targetRelId=BlockAccess::linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, relNameAsAttribute, EQ);
+    int count=0;
+    targetRelId=BlockAccess::linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, relNameAsAttribute, EQ, count);
 
     // if a relation with name `relName` already exists  ( linearSearch() does
     //                                                     not return {-1,-1} )

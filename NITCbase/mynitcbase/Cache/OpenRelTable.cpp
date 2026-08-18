@@ -242,10 +242,12 @@ int OpenRelTable::openRel(char relName[ATTR_SIZE]) {
 
   /****** Setting up Relation Cache entry for the relation ******/
 
-  /* search for the entry with relation name, relName, in the Relation Catalog using
-      BlockAccess::linearSearch().
-      Care should be taken to reset the searchIndex of the relation RELCAT_RELID
-      before calling linearSearch().*/
+  /* 
+    search for the entry with relation name, relName, in the Relation Catalog using
+    BlockAccess::linearSearch().
+    Care should be taken to reset the searchIndex of the relation RELCAT_RELID
+    before calling linearSearch().
+  */
 
   // relcatRecId stores the rec-id of the relation `relName` in the Relation Catalog.
   RecId relcatRecId;
@@ -254,7 +256,8 @@ int OpenRelTable::openRel(char relName[ATTR_SIZE]) {
   Attribute target;
   strcpy(target.sVal, relName);
 
-  relcatRecId=BlockAccess::linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, target, EQ);
+  int cnt=0;
+  relcatRecId=BlockAccess::linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, target, EQ, cnt);
   if (relcatRecId.block==-1 || relcatRecId.slot==-1 ) {
     // (the relation is not found in the Relation Catalog.)
     return E_RELNOTEXIST;
@@ -293,7 +296,8 @@ int OpenRelTable::openRel(char relName[ATTR_SIZE]) {
   for(int i=0;i<numAttrs;i++){
     /* let attrcatRecId store a valid record id an entry of the relation, relName,
     in the Attribute Catalog.*/
-    RecId attrCatRecId=BlockAccess::linearSearch(ATTRCAT_RELID, ATTRCAT_ATTR_RELNAME, target, EQ);
+    int cnt=0;
+    RecId attrCatRecId=BlockAccess::linearSearch(ATTRCAT_RELID, ATTRCAT_ATTR_RELNAME, target, EQ, cnt);
     RecBuffer recBuffer(attrCatRecId.block);
     Attribute attrCatRecord[ATTRCAT_NO_ATTRS];
     // read the record entry corresponding to attrcatRecId and create an
