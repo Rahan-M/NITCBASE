@@ -84,9 +84,8 @@ int Algebra::select(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr
     }
     printf("\n");
 
-    int cnt=0;
     while (true) {
-      RecId searchRes = BlockAccess::linearSearch(srcRelId, attr, attrVal, op, cnt);
+      RecId searchRes = BlockAccess::linearSearch(srcRelId, attr, attrVal, op);
 
       if (searchRes.block != -1 && searchRes.slot != -1) {
           // get the record at searchRes using BlockBuffer.getRecord
@@ -176,8 +175,7 @@ int Algebra::select(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr
   */
   RelCacheTable::resetSearchIndex(srcRelId);
   AttrCacheTable::resetSearchIndex(srcRelId, attr); // for b+ tree search
-  int cnt=0;
-  while(BlockAccess::search(srcRelId, record, attr, attrVal, op, cnt)==SUCCESS){
+  while(BlockAccess::search(srcRelId, record, attr, attrVal, op)==SUCCESS){
     ret = BlockAccess::insert(targetRelId, record);
     // if (insert fails) {
     if(ret!=SUCCESS){
@@ -188,7 +186,6 @@ int Algebra::select(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr
       return ret;
     }
   }
-  cout<<cnt<<endl;
   Schema::closeRel(targetRel);
   return SUCCESS;
 }
@@ -666,7 +663,7 @@ int Algebra::join(char srcRelation1[ATTR_SIZE], char srcRelation2[ATTR_SIZE], ch
         targetRecord[i]=record1[i];
       }
       int cnt=0;
-      while (BlockAccess::search(srcRelId2, record2, attribute2, record1[attrCatEntry1.offset], EQ, cnt) == SUCCESS ) {
+      while (BlockAccess::search(srcRelId2, record2, attribute2, record1[attrCatEntry1.offset], EQ) == SUCCESS ) {
 
           // copy srcRelation1's and srcRelation2's attribute values(except
           // for attribute2 in rel2) from record1 and record2 to targetRecord

@@ -10,7 +10,7 @@
 
 class BlockAccess {
  public:
-  static int search(int relId, Attribute *record, char *attrName, Attribute attrVal, int op, int &count);
+  static int search(int relId, Attribute *record, char *attrName, Attribute attrVal, int op);
 
   static int insert(int relId, union Attribute *record);
 
@@ -20,7 +20,7 @@ class BlockAccess {
 
   static int deleteRelation(char *relName);
 
-  static RecId linearSearch(int relId, const char *constAttrName, Attribute attrVal, int op, int &count);
+  static RecId linearSearch(int relId, const char *constAttrName, Attribute attrVal, int op);
 
   static int project(int relId, Attribute *record);
 };

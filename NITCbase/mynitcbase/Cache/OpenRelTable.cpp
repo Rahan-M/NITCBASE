@@ -256,8 +256,7 @@ int OpenRelTable::openRel(char relName[ATTR_SIZE]) {
   Attribute target;
   strcpy(target.sVal, relName);
 
-  int cnt=0;
-  relcatRecId=BlockAccess::linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, target, EQ, cnt);
+  relcatRecId=BlockAccess::linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, target, EQ);
   if (relcatRecId.block==-1 || relcatRecId.slot==-1 ) {
     // (the relation is not found in the Relation Catalog.)
     return E_RELNOTEXIST;
@@ -296,8 +295,7 @@ int OpenRelTable::openRel(char relName[ATTR_SIZE]) {
   for(int i=0;i<numAttrs;i++){
     /* let attrcatRecId store a valid record id an entry of the relation, relName,
     in the Attribute Catalog.*/
-    int cnt=0;
-    RecId attrCatRecId=BlockAccess::linearSearch(ATTRCAT_RELID, ATTRCAT_ATTR_RELNAME, target, EQ, cnt);
+    RecId attrCatRecId=BlockAccess::linearSearch(ATTRCAT_RELID, ATTRCAT_ATTR_RELNAME, target, EQ);
     RecBuffer recBuffer(attrCatRecId.block);
     Attribute attrCatRecord[ATTRCAT_NO_ATTRS];
     // read the record entry corresponding to attrcatRecId and create an

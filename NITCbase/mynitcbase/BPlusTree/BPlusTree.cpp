@@ -3,7 +3,7 @@
 #include <cstring>
 using namespace std;
 
-RecId BPlusTree::bPlusSearch(int relId, char attrName[ATTR_SIZE], Attribute attrVal, int op, int &count) {
+RecId BPlusTree::bPlusSearch(int relId, char attrName[ATTR_SIZE], Attribute attrVal, int op) {
     // declare searchIndex which will be used to store search index for attrName.
     /* get the search index corresponding to attribute with name attrName
        using AttrCacheTable::getSearchIndex(). */
@@ -107,7 +107,6 @@ RecId BPlusTree::bPlusSearch(int relId, char attrName[ATTR_SIZE], Attribute attr
             int idx=0;
             while (idx<intHead.numEntries){
                 internalBlk.getEntry(&intEntry, idx);
-                count=(count+1)%(1000000000);
                 if(op==GT){
                     if(compareAttrs(intEntry.attrVal, attrVal, attrCatEntry.attrType)>0)
                         break;
@@ -162,7 +161,6 @@ RecId BPlusTree::bPlusSearch(int relId, char attrName[ATTR_SIZE], Attribute attr
 
             int cmpVal =compareAttrs(leafEntry.attrVal, attrVal, attrCatEntry.attrType);
             /* comparison between leafEntry's attribute value and input attrVal using compareAttrs()*/
-            count=(count+1)%(1000000000);
             if (
                 (op == EQ && cmpVal == 0) ||
                 (op == LE && cmpVal <= 0) ||

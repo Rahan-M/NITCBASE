@@ -4,7 +4,7 @@
 #include <iostream>
 using namespace std;
 
-RecId BlockAccess::linearSearch(int relId, const char constAttrName[ATTR_SIZE], union Attribute attrVal, int op, int &count) {
+RecId BlockAccess::linearSearch(int relId, const char constAttrName[ATTR_SIZE], union Attribute attrVal, int op) {
     // relId is index of this relation in the relation cache
     // get the previous search index of the relation relId from the relation cache
     // (use RelCacheTable::getSearchIndex() function)
@@ -99,7 +99,7 @@ RecId BlockAccess::linearSearch(int relId, const char constAttrName[ATTR_SIZE], 
         // will store the difference between the attributes
         // we have to see if record compared to attrVal so record goes first
         int cmpVal=compareAttrs(record[offset], attrVal, attrCatEntry.attrType);  
-        count=(count+1)%(1000000000);
+        
         // set cmpVal using compareAttrs()
 
         /* Next task is to check whether this record satisfies the given condition.
@@ -141,8 +141,7 @@ int BlockAccess::renameRelation(char oldName[ATTR_SIZE], char newName[ATTR_SIZE]
     strcpy(newRelationName.sVal, newName);
     
     // search the relation catalog for an entry with "RelName" = newRelationName
-    int x=0;
-    RecId newRel=linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, newRelationName, EQ, x);
+    RecId newRel=linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, newRelationName, EQ);
     // If relation with name newName already exists (result of linearSearch
     //                                               is not {-1, -1})
     //    return E_RELEXIST;
@@ -158,7 +157,7 @@ int BlockAccess::renameRelation(char oldName[ATTR_SIZE], char newName[ATTR_SIZE]
     strcpy(oldRelationName.sVal, oldName);
 
     // search the relation catalog for an entry with "RelName" = oldRelationName
-    RecId oldRel=linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, oldRelationName, EQ, x);
+    RecId oldRel=linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, oldRelationName, EQ);
     
     // If relation with name oldName does not exist (result of linearSearch is {-1, -1})
     //    return E_RELNOTEXIST;
@@ -195,7 +194,7 @@ int BlockAccess::renameRelation(char oldName[ATTR_SIZE], char newName[ATTR_SIZE]
     int numAttrs=relCatRecord[RELCAT_NO_ATTRIBUTES_INDEX].nVal;
     for(int i=0;i<numAttrs;i++){
         //    linearSearch on the attribute catalog for relName = oldRelationName
-        RecId attrId=linearSearch(ATTRCAT_RELID, ATTRCAT_ATTR_RELNAME, oldRelationName, EQ, x);
+        RecId attrId=linearSearch(ATTRCAT_RELID, ATTRCAT_ATTR_RELNAME, oldRelationName, EQ);
         //    get the record using RecBuffer.getRecord
         RecBuffer attrCatBuffer(attrId.block);
         Attribute attrCatRecord[ATTRCAT_NO_ATTRS];
@@ -219,8 +218,7 @@ int BlockAccess::renameAttribute(char relName[ATTR_SIZE], char oldName[ATTR_SIZE
     // Search for the relation with name relName in relation catalog using linearSearch()
     Attribute relNameAttr;    // set relNameAttr to relName
     strcpy(relNameAttr.sVal, relName);
-    int x=0;
-    RecId relId=linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, relNameAttr, EQ, x);
+    RecId relId=linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, relNameAttr, EQ);
 
     // If relation with name relName does not exist (search returns {-1,-1})
     //    return E_RELNOTEXIST;
@@ -239,7 +237,7 @@ int BlockAccess::renameAttribute(char relName[ATTR_SIZE], char oldName[ATTR_SIZE
        relation to find the required attribute */
     while (true) {
         // linear search on the attribute catalog for RelName = relNameAttr
-        RecId attrId=linearSearch(ATTRCAT_RELID, ATTRCAT_ATTR_RELNAME, relNameAttr, EQ, x);
+        RecId attrId=linearSearch(ATTRCAT_RELID, ATTRCAT_ATTR_RELNAME, relNameAttr, EQ);
         // if there are no more attributes left to check (linearSearch returned {-1,-1})
         //     break;
         if(attrId.block==-1 || attrId.slot==-1)
@@ -489,7 +487,7 @@ NOTE: This function will copy the result of the search to the `record` argument.
       The caller should ensure that space is allocated for `record` array
       based on the number of attributes in the relation.
 */
-int BlockAccess::search(int relId, Attribute *record, char attrName[ATTR_SIZE], Attribute attrVal, int op, int &count) {
+int BlockAccess::search(int relId, Attribute *record, char attrName[ATTR_SIZE], Attribute attrVal, int op) {
     // returns a record instead of recId
     // in the future will use b+trees, rn uses linear search
     // Declare a variable called recid to store the searched record
@@ -511,7 +509,7 @@ int BlockAccess::search(int relId, Attribute *record, char attrName[ATTR_SIZE], 
         attribute name attrName, with value attrval and satisfying the
         condition op using linearSearch()
         */
-       recId=linearSearch(relId, attrName, attrVal, op, count);
+       recId=linearSearch(relId, attrName, attrVal, op);
     }else{
     /* else */ 
         // (index exists for the attribute)
@@ -519,7 +517,7 @@ int BlockAccess::search(int relId, Attribute *record, char attrName[ATTR_SIZE], 
         /* search for the record id (recid) correspoding to the attribute with
         attribute name attrName and with value attrval and satisfying the
         condition op using BPlusTree::bPlusSearch() */
-        recId=BPlusTree::bPlusSearch(relId, attrName, attrVal, op, count);
+        recId=BPlusTree::bPlusSearch(relId, attrName, attrVal, op);
     }
 
     // if there's no record satisfying the given condition (recId = {-1, -1})
@@ -561,8 +559,7 @@ int BlockAccess::deleteRelation(char relName[ATTR_SIZE]) {
     strcpy(relNameAttr.sVal, relName);
 
     //  linearSearch on the relation catalog for RelName = relNameAttr
-    int x=0;
-    RecId relCatRecId=linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, relNameAttr, EQ, x);
+    RecId relCatRecId=linearSearch(RELCAT_RELID, RELCAT_ATTR_RELNAME, relNameAttr, EQ);
     // if the relation does not exist (linearSearch returned {-1, -1})
     //     return E_RELNOTEXIST
     if(relCatRecId.block==-1 || relCatRecId.slot==-1)
@@ -607,7 +604,7 @@ int BlockAccess::deleteRelation(char relName[ATTR_SIZE]) {
     int numberOfAttributesDeleted = 0;
     while(true) {
         // attrCatRecId = linearSearch on attribute catalog for RelName = relNameAttr
-        RecId attrCatRecId=linearSearch(ATTRCAT_RELID, ATTRCAT_ATTR_RELNAME, relNameAttr, EQ, x);
+        RecId attrCatRecId=linearSearch(ATTRCAT_RELID, ATTRCAT_ATTR_RELNAME, relNameAttr, EQ);
 
         // if no more attributes to iterate over (attrCatRecId == {-1, -1})
         //     break;
