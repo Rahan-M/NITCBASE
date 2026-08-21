@@ -545,6 +545,8 @@ int BlockAccess::search(int relId, Attribute *record, char attrName[ATTR_SIZE], 
 }
 
 int BlockAccess::deleteRelation(char relName[ATTR_SIZE]) {
+    // in block access layer prolly cause we are deleting all the records
+    // i mean just realeasing all the blocks
     // if the relation to delete is either Relation Catalog or Attribute Catalog,
     //     return E_NOTPERMITTED
     // (check if the relation names are either "RELATIONCAT" and "ATTRIBUTECAT".

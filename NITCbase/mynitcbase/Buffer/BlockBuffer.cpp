@@ -214,7 +214,7 @@ int BlockBuffer::getFreeBlock(int blockType){
     // pblock: -1, lblock: -1, rblock: -1, numEntries: 0, numAttrs: 0, numSlots: 0
     // to the setHeader() function.
     HeadInfo headIndo;
-    headIndo.blockType=blockType;
+    headIndo.blockType=blockType; // actually not supposed to be here (THIS LINE ALONE)
     headIndo.pblock=-1;
     headIndo.lblock=-1;
     headIndo.rblock=-1;
